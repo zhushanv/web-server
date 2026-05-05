@@ -5,7 +5,7 @@
 //初始化套接字
 int initSocket();
 
-//接收客户端的连接请求
+//接受客户端的连接请求
 int acceptClient(void);
 
 //接收http请求，多线程, buffer为接收到的数据
