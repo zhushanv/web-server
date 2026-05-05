@@ -16,7 +16,8 @@
 void *client_thread(void *arg){
     CA* ca = (CA*)arg;
     int conn = ca->conn;
-    char* home = ca->home;
+    char home[PATH_MAX] = {};
+    strcpy(home, ca->home);
     printf("pid: %d, tid: %p > Client thread begin....\n", getpid(), pthread_self());
     //接收请求信息
     while(1){
@@ -42,8 +43,8 @@ void *client_thread(void *arg){
         free(request);
         //寻找资源
         //先构造正确的访问路径， 去掉资源路径后可能存在的/
-        if(ca->home[strlen(ca->home)-1] == '/'){
-            ca->home[strlen(ca->home)-1] = '\0';
+        if(home[strlen(home)-1] == '/'){
+            home[strlen(home)-1] = '\0';
         }
 
         //特殊情况--根目录/ , 这是客户端为指定特定文件， 我们默认为首页文件index.html
@@ -53,7 +54,7 @@ void *client_thread(void *arg){
 
         //路径拼接
         char path[PATH_MAX] = {};
-        snprintf(path, PATH_MAX, "%s%s", ca->home, hreq.path);
+        snprintf(path, PATH_MAX, "%s%s", home, hreq.path);
         printf("pid: %d, tid: %p > Client thread search resource path: %s\n", getpid(), pthread_self(), path);
         
         //搜索资源,构造响应头,初始化为常用的值

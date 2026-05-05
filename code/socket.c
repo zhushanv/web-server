@@ -15,7 +15,7 @@
 
 int sockfd = -1; //侦听套接字
 
-int initSocket(){
+int initSocket(short port){
     //创建套接字
     printf("pid: %d, tid: %p > Initializing socket...\n", getpid(), pthread_self());
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -36,7 +36,7 @@ int initSocket(){
     printf("pid: %d, tid: %p > Setting up server address...\n", getpid(), pthread_self());
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(8080);
+    server_addr.sin_port = htons(port);
     //一个服务器可以有多个网卡，对应着多个ip地址，INADDR_ANY表示任意ip地址
     server_addr.sin_addr.s_addr = INADDR_ANY;
 

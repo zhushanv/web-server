@@ -3,7 +3,7 @@
 #define SOCKET_H
 
 //初始化套接字
-int initSocket();
+int initSocket(short port);
 
 //接受客户端的连接请求
 int acceptClient(void);
