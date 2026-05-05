@@ -62,7 +62,7 @@ int acceptClient(void){
     struct sockaddr_in client_addr;
     //为什么一定要初始化这个变量？因为accept函数会修改这个变量，告诉我们客户端地址结构的实际长度，如果不初始化，可能会导致accept函数失败
     socklen_t client_addr_len = sizeof(client_addr); 
-    int connect_fd = accept(sockfd, (struct sockaddr*)&client_addr, NULL);
+    int connect_fd = accept(sockfd, (struct sockaddr*)&client_addr, &client_addr_len);
     if(connect_fd == -1){
         perror("accept");
         return -1;
