@@ -1,30 +1,54 @@
-//http头文件
-#ifndef HTTP_H
-#define HTTP_H
+//http模块实现
+#include "http.h"
+#include <sys/syscall.h>
+#include <unistd.h> //NULL
+#define __USE_GNU //为了使用strcasestr函数
+#include <string.h> 
+#include <time.h> //strftime
+#include <stdio.h> //printf, sprintf
+#include <pthread.h> //pthread_self
 
-#include <limits.h>
-#include <sys/types.h> //定义了PATH_MAX
-//解析得到的关键数据
-typedef struct httpRequest{
-    char method[16]; //请求方法
-    char path[PATH_MAX];  //请求路径， 不清楚请求路径的具体长度，就用系统定义的最大路径长度
-    char version[32]; //HTTP版本号
-    char connection[32]; //要么是"keep-alive"，要么是"close"
-}HTTP_REQUEST;
+//解析http请求
+//sscanf从字符串中读取数据，格式化输入
+int parseRequest(const char* request, HTTP_REQUEST* hreq){
+    //解析请求行
+    sscanf(request, "%s %s %s", hreq->method, hreq->path, hreq->version);
 
-typedef struct httpResponse{
-    char version[32]; //
-    int status;
-    char desc[64];//状态描述符
-    char type[64]; //返回的内容类型
-    int length; //返回的内容长度
-    char connection[32]; //连接状态
-}HTTP_RESPONSE;
+    char* connection = strcasestr(request, "Connection: ");
+    if(connection != NULL){
+        sscanf(connection, "Connection: %s", hreq->connection);
+    }
 
-//函数一， 解析http请求，返回请求的资源路径(用输出型参数表示)
-//成功返回0，失败返回-1
-int parseRequest(const char* request, HTTP_REQUEST* hreq);
-//函数二， 构造http响应，返回响应字符串
-//一般返回值用来表示是否成功，成功返回0，失败返回-1，要存储的内容用输出型参数表示
-int constructHead(const HTTP_RESPONSE* hres, char* response);
-#endif // HTTP_H
+   //进程id， 线程id
+   printf("pid: %d, tid: %p > [%s][%s][%s][%s]\n", getpid(), pthread_self(), hreq->method, hreq->path, hreq->version, hreq->connection);
+   
+   //判断请求方法
+   if(strcasecmp(hreq->method, "get")){
+        printf("pid: %d, tid: %p > Unsupported HTTP method: %s\n", getpid(), pthread_self(), hreq->method);
+        return -1;
+   }
+   //判断协议版本
+   if(strcasecmp(hreq->version, "HTTP/1.1") && strcasecmp(hreq->version, "HTTP/1.0")){
+        printf("pid: %d, tid: %p > Unsupported HTTP version: %s\n", getpid(), pthread_self(), hreq->version);
+        return -1;
+   }
+   return 0;
+}
+
+//构建http响应
+int constructHead(const HTTP_RESPONSE* hres, char* response){
+    char timebuf[128];
+    time_t now = time(NULL);
+    struct tm* tm_info = localtime(&now);
+    strftime(timebuf, sizeof(timebuf), "%a %d %b %Y %T", tm_info);
+
+    sprintf(response, "%s %d %s\r\n"
+                      "Server: ShanziServer 1.0\r\n"
+                      "Date: %s\r\n"
+                      "Content-Type: %s\r\n"
+                      "Content-Length: %lld\r\n"
+                      "Connection: %s\r\n\r\n",
+                      hres->version, hres->status, hres->desc, timebuf
+                      , hres->type, hres->length, hres->connection);
+    return 0;
+}
