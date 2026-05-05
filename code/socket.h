@@ -9,7 +9,7 @@ int initSocket();
 int acceptClient(void);
 
 //接收http请求，多线程, buffer为接收到的数据
-int recvRequest(int connect_fd, char* buffer);
+char* recvRequest(int connect_fd);
 
 //发送http响应头
 int sendHead(int connect_fd, const char* response);
