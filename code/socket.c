@@ -78,7 +78,7 @@ char* recvRequest(int connect_fd){
     //方法是边接边存
     //只不过这样子要时刻注意存储区的内存管理，防止内存泄漏
 
-    char* res; //请求内容存储区地址
+    char* res = NULL; //请求内容存储区地址
     int len = 0; //存储区大小
 
     //用size = 0 判断循环结束表示的是对方关闭通信套接字
@@ -97,12 +97,13 @@ char* recvRequest(int connect_fd){
             return NULL;
         }
         //扩大存储区，存储区的大小是当前已经存储的内容大小加上新接收的内容大小再加上1字节的‘\0’
-        res = realloc(res, len + size + 1);
-        if(res == NULL){
+        char* new_res = realloc(res, len + size + 1);
+        if(new_res == NULL){
             free(res);
             perror("realloc");
             return NULL;
         }
+        res = new_res;
         //拷贝新的内容， 指定拷贝字节数
         memcpy(res + len, buffer, size);
         len += size;
